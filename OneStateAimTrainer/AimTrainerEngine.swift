@@ -82,7 +82,7 @@ final class AimTrainerEngine: ObservableObject {
 
         for index in targets.indices {
             var target = targets[index]
-            target.position.x -= translation.width * scale
+            target.position.x += translation.width * scale
             target.position.y -= translation.height * scale
             wrap(&target, inside: size)
             targets[index] = target
