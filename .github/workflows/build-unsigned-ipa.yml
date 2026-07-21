@@ -1,0 +1,81 @@
+name: Build unsigned IPA
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oneaim-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build OneAim
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Validate project
+        run: ./Scripts/validate_project.sh
+
+      - name: Audit permissions and dependencies
+        run: ./Scripts/security_audit.sh
+
+      - name: Run unit tests on iPhone simulator
+        run: |
+          set -euo pipefail
+          simulator_id=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; devices=json.load(sys.stdin)["devices"]; print(next(device["udid"] for runtime in devices.values() for device in runtime if device.get("isAvailable") and device["name"].startswith("iPhone")))')
+          xcodebuild \
+            -project OneStateAimTrainer.xcodeproj \
+            -scheme OneStateAimTrainer \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -derivedDataPath "$RUNNER_TEMP/OneAimTestData" \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
+      - name: Build without signing
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project OneStateAimTrainer.xcodeproj \
+            -scheme OneStateAimTrainer \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/OneAimDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          app_path="$RUNNER_TEMP/OneAimDerivedData/Build/Products/Release-iphoneos/OneStateAimTrainer.app"
+          test -d "$app_path"
+          mkdir -p "$RUNNER_TEMP/OneAimPayload/Payload"
+          ditto "$app_path" "$RUNNER_TEMP/OneAimPayload/Payload/OneStateAimTrainer.app"
+          cd "$RUNNER_TEMP/OneAimPayload"
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/OneAim-unsigned.ipa" Payload
+          test -s "$GITHUB_WORKSPACE/OneAim-unsigned.ipa"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: OneAim-unsigned-IPA
+          path: OneAim-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
