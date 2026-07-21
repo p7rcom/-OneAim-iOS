@@ -412,7 +412,7 @@ struct ShotFeedbackView: View {
     let feedback: ShotFeedback
 
     var body: some View {
-        Text(feedback.isHit ? "+\(feedback.points)" : "خطأ")
+        Text(feedback.isHit ? "+\(feedback.points)" : "يا احول")
             .font(.system(size: 15, weight: .black, design: .rounded))
             .foregroundStyle(feedback.isHit ? Color.green : Color.red)
             .shadow(color: .black, radius: 2)
