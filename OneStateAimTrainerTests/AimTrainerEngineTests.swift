@@ -1,5 +1,6 @@
 import XCTest
 import CoreGraphics
+import Foundation
 @testable import OneStateAimTrainer
 
 final class AimTrainerEngineTests: XCTestCase {
@@ -45,5 +46,30 @@ final class AimTrainerEngineTests: XCTestCase {
         engine.pan(by: CGSize(width: -12, height: 0), in: fieldSize)
 
         XCTAssertEqual(engine.targets[0].position.x, initialX - 12, accuracy: 0.001)
+    }
+
+    func testFireButtonUsesPhysicalScreenSide() {
+        let landscape = CGSize(width: 844, height: 390)
+        let left = AimLayout.fireButtonCenter(for: .left, in: landscape)
+        let right = AimLayout.fireButtonCenter(for: .right, in: landscape)
+
+        XCTAssertLessThan(left.x, landscape.width / 2)
+        XCTAssertGreaterThan(right.x, landscape.width / 2)
+        XCTAssertEqual(left.x, 104, accuracy: 0.001)
+        XCTAssertEqual(right.x, 740, accuracy: 0.001)
+        XCTAssertEqual(left.y, right.y, accuracy: 0.001)
+    }
+
+    @MainActor
+    func testRightFireButtonPreferencePersistsIntoSession() {
+        let suiteName = "OneStateAimTrainerTests.\(UUID().uuidString)"
+        let defaults = try! XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = AppSettings(defaults: defaults)
+        settings.fireButtonSide = .right
+
+        XCTAssertEqual(settings.snapshot.fireButtonSide, .right)
+        XCTAssertEqual(AppSettings(defaults: defaults).fireButtonSide, .right)
     }
 }

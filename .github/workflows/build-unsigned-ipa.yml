@@ -29,6 +29,23 @@ jobs:
       - name: Validate project
         run: ./Scripts/validate_project.sh
 
+      - name: Audit permissions and dependencies
+        run: ./Scripts/security_audit.sh
+
+      - name: Run unit tests on iPhone simulator
+        run: |
+          set -euo pipefail
+          simulator_id=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; devices=json.load(sys.stdin)["devices"]; print(next(device["udid"] for runtime in devices.values() for device in runtime if device.get("isAvailable") and device["name"].startswith("iPhone")))')
+          xcodebuild \
+            -project OneStateAimTrainer.xcodeproj \
+            -scheme OneStateAimTrainer \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -derivedDataPath "$RUNNER_TEMP/OneAimTestData" \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
       - name: Build without signing
         run: |
           set -euo pipefail

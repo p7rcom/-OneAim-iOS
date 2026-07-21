@@ -16,6 +16,7 @@ OneStateAimTrainer/Components.swift
 OneStateAimTrainer/Info.plist
 OneStateAimTrainer/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
 OneStateAimTrainerTests/AimTrainerEngineTests.swift
+Scripts/security_audit.sh
 "
 
 for relative_path in $required_files; do

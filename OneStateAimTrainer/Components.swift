@@ -391,7 +391,7 @@ struct FireButton: View {
                     .font(.system(size: 27, weight: .bold))
                     .foregroundStyle(.white)
             }
-            .frame(width: 76, height: 76)
+            .frame(width: AimLayout.fireButtonDiameter, height: AimLayout.fireButtonDiameter)
             .background(.black.opacity(0.28), in: Circle())
         }
         .buttonStyle(PressScaleButtonStyle())

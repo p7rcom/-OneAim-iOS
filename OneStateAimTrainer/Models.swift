@@ -51,6 +51,21 @@ enum FireButtonSide: String, CaseIterable, Identifiable {
     var title: String { self == .left ? "يسار" : "يمين" }
 }
 
+enum AimLayout {
+    static let fireButtonDiameter: CGFloat = 76
+    static let fireButtonHorizontalInset: CGFloat = 66
+    static let fireButtonBottomInset: CGFloat = 24
+
+    static func fireButtonCenter(for side: FireButtonSide, in size: CGSize) -> CGPoint {
+        let radius = fireButtonDiameter / 2
+        let leftX = fireButtonHorizontalInset + radius
+        let rightX = max(leftX, size.width - fireButtonHorizontalInset - radius)
+        let y = max(radius, size.height - fireButtonBottomInset - radius)
+
+        return CGPoint(x: side == .left ? leftX : rightX, y: y)
+    }
+}
+
 enum CrosshairTint: String, CaseIterable, Identifiable {
     case cyan
     case green

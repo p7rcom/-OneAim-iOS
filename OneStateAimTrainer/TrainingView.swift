@@ -125,19 +125,7 @@ struct TrainingView: View {
     }
 
     private func fireButton(in size: CGSize) -> some View {
-        VStack {
-            Spacer()
-            HStack {
-                if engine.settings.fireButtonSide == .left {
-                    FireButton { engine.fire(in: size) }
-                    Spacer()
-                } else {
-                    Spacer()
-                    FireButton { engine.fire(in: size) }
-                }
-            }
-        }
-        .padding(.horizontal, 66)
-        .padding(.bottom, 24)
+        FireButton { engine.fire(in: size) }
+            .position(AimLayout.fireButtonCenter(for: engine.settings.fireButtonSide, in: size))
     }
 }
